@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Unlocker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0e0e0f, #442a2a, #584823);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 18px;
+            width: 380px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-2px);
+        }
+
+        .container h1 {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .container p {
+            font-size: 0.9rem;
+            color: #eee;
+            margin-bottom: 25px;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 14px;
+            padding: 35px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .drop-zone:hover {
+            border-color: #00e5ff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .drop-zone svg {
+            width: 70px;
+            height: 70px;
+            fill: #bbb;
+            margin-bottom: 10px;
+            transition: transform 0.3s ease, fill 0.3s ease;
+        }
+
+        .drop-zone:hover svg {
+            transform: scale(1.1);
+            fill: #00e5ff;
+        }
+
+        .drop-zone-text p {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #00e5ff;
+            display: none;
+            text-align: left;
+            background: rgba(0, 229, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            position: relative;
+        }
+
+        .file-info::before {
+            content: "📄 ";
+            font-size: 1rem;
+        }
+
+        .input-group {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 6px;
+            color: #ddd;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            outline: none;
+            transition: border 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #00e5ff;
+        }
+
+        .upload-btn {
+            margin-top: 25px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #00bcd4, #0097a7);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background: linear-gradient(135deg, #0097a7, #00bcd4);
+            transform: translateY(-2px);
+        }
+
+        .loader {
+            display: none;
+            margin: 15px auto;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #00e5ff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .note {
+            margin-top: 15px;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        #pdfUpload {
+            display: none;
+        }
+
+        #errorMsg {
+            color: red;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Title -->
+        <h1>Unlock Your PDFs</h1>
+        <p>Securely remove passwords and restrictions from your PDF files.</p>
+
+        <!-- Drop Zone -->
+        <label for="pdfUpload" class="drop-zone" id="dropZone">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-width="2" fill="none"
+                    d="M12 16V8m0 0L8 12m4-4 4 4M4 16.5V19a2 2 0 002 2h12a2 2 0 002-2v-2.5M16 7h2a2 2 0 012 2v2" />
+            </svg>
+            <div class="drop-zone-text">
+                <p>Drag & Drop your PDF here<br>or click to select a file</p>
+            </div>
+        </label>
+
+        <!-- Form -->
+        <form action="/unlock" method="POST" enctype="multipart/form-data" id="unlockForm">
+            <input type="file" id="pdfUpload" name="pdf" accept="application/pdf" required>
+            <div class="file-info" id="fileInfo">No file selected</div>
+
+            <div class="input-group">
+                <p id="errorMsg">
+                </p>
+                <label for="password">Password (if any):</label>
+                <input type="text" name="password" id="password" placeholder="Enter PDF password">
+            </div>
+
+            <button type="submit" class="upload-btn" id="uploadBtn">Unlock PDF</button>
+
+            <div class="loader" id="loader"></div>
+        </form>
+
+        <p class="note">Your files are processed locally and never uploaded to any server.</p>
+    </div>
+
+    <script>
+        const pdfUpload = document.getElementById('pdfUpload');
+        const fileInfo = document.getElementById('fileInfo');
+        const dropZone = document.getElementById('dropZone');
+        const form = document.getElementById('unlockForm');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('errorMsg');
+
+        pdfUpload.addEventListener('change', () => {
+            if (pdfUpload.files.length > 0) {
+                const file = pdfUpload.files[0];
+                fileInfo.style.display = 'block';
+                fileInfo.textContent = `Selected file: ${file.name}`;
+                dropZone.style.borderColor = '#00e5ff';
+            } else {
+                fileInfo.style.display = 'none';
+                dropZone.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            }
+        });
+
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileName = fileInfo.textContent.replace("Selected file: ", "");
+            const baseName = fileName.replace(/\.pdf$/i, "");
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/unlock', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    errorMsg.textContent = errorData.message;
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${baseName}-unlocked.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                alert("Your unlocked pdf is downloading.")
+                window.location.reload();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
