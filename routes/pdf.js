@@ -32,7 +32,6 @@ router.post("/unlock", upload.single("pdf"), (req, res) => {
 
   exec(command, (error) => {
     if (error) {
-      console.error("Error unlocking PDF:", error);
       if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
 
       return res.status(400).json({

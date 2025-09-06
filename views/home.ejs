@@ -252,9 +252,12 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            errorMsg.style.display = 'none'; 
+            loader.style.display = 'block'; 
+
             const fileName = fileInfo.textContent.replace("Selected file: ", "");
             const baseName = fileName.replace(/\.pdf$/i, "");
-
             const formData = new FormData(form);
 
             try {
@@ -267,8 +270,10 @@
                     const errorData = await response.json();
                     errorMsg.textContent = errorData.message;
                     errorMsg.style.display = 'block';
+                    loader.style.display = 'none';
                     return;
                 }
+
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -277,10 +282,15 @@
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                alert("Your unlocked pdf is downloading.")
+                loader.style.display = 'none';
+
+                alert("Your unlocked PDF is downloading.");
                 window.location.reload();
-            } catch (error) {
-                console.error('Error:', error);
+            } catch (err) {
+                console.error(err);
+                errorMsg.textContent = "Something went wrong. Please try again.";
+                errorMsg.style.display = 'block';
+                loader.style.display = 'none';
             }
         });
     </script>
