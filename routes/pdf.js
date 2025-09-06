@@ -22,6 +22,12 @@ router.get("/", (req, res) => {
 });
 
 router.post("/unlock", upload.single("pdf"), (req, res) => {
+  if (!req.file) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No file uploaded." });
+  }
+
   const inputPath = req.file.path;
   const outputPath = path.resolve(
     `./public/uploads/unlocked-${Date.now()}.pdf`
@@ -32,29 +38,29 @@ router.post("/unlock", upload.single("pdf"), (req, res) => {
 
   exec(command, (error) => {
     if (error) {
+      console.error("qpdf error:", error);
       if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
 
       return res.status(400).json({
         success: false,
-        message: "PDF is strongly encrypted and requires the correct password.",
-        filePath: inputPath,
+        message:
+          "PDF is strongly encrypted or qpdf failed. Check password or file.",
       });
     }
 
     const originalName = req.file.originalname;
     const ext = path.extname(originalName);
     const baseName = path.basename(originalName, ext);
-    res.download(outputPath, `${baseName}-unlocked.${ext}`, (err) => {
+
+    res.download(outputPath, `${baseName}-unlocked${ext}`, (err) => {
       try {
         if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
       } catch (cleanupError) {
-        console.error("Error cleaning up files:", cleanupError);
+        console.error("Cleanup error:", cleanupError);
       }
 
-      if (err) {
-        console.error("Download error:", err);
-      }
+      if (err) console.error("Download error:", err);
     });
   });
 });
