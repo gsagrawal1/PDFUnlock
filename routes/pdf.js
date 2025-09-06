@@ -6,9 +6,12 @@ const { exec } = require("child_process");
 
 const router = express.Router();
 
+const uploadDir = path.resolve("/tmp/uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.resolve(`./public/uploads`));
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const fileName = `${Date.now()}-${file.originalname}`;
@@ -29,9 +32,7 @@ router.post("/unlock", upload.single("pdf"), (req, res) => {
   }
 
   const inputPath = req.file.path;
-  const outputPath = path.resolve(
-    `./public/uploads/unlocked-${Date.now()}.pdf`
-  );
+  const outputPath = path.resolve(`/tmp/unlocked-${Date.now()}.pdf`);
   const password = req.body.password || "";
 
   const command = `qpdf --password=${password} --decrypt "${inputPath}" "${outputPath}"`;
